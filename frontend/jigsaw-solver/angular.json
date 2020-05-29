@@ -123,6 +123,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "jigsaw-solver"
+    }
+  },
+  "defaultProject": "jigsaw-solver",
+  "cli": {
+    "analytics": false
+  }
 }

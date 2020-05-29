@@ -1,2 +1,7 @@
-<h3>Drag and drop your image here:</h3>
-
+<div class="dropzone" appDnd>
+  <input type="file" #fileDropRef id="fileDropRef" multiple (change)="fileBrowserHandler($event.target.files)"/>
+  <img src="assets/img/dnd/ic-upload-file.svg" alt="">
+  <h3>Drag and drop file here</h3>
+  <h3>or</h3>
+  <label for="fileDropRef">Browse for file</label>
+</div>

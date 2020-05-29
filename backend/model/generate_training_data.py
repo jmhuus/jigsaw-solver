@@ -1,7 +1,7 @@
-import svgwrite
+from PIL import Image, ImageDraw
 
-# Create new svg object
-dwg = svgwrite.Drawing('test.svg', profile='tiny')
-dwg.add(dwg.line((0, 0), (10, 0), stroke=svgwrite.rgb(10, 10, 16, '%')))
-dwg.add(dwg.text('Test', insert=(0, 0.2), fill='red'))
-dwg.save()
+im = Image.new('RGB', (500, 300), (128, 128, 128))
+draw = ImageDraw.Draw(im)
+draw.polygon((100, 100, 100, 200, 300, 200), fill=(0, 192, 192), outline=(255, 255, 255))
+# polygon(x1, y1, x2, y2, ...)
+im.save("test.jpeg")
