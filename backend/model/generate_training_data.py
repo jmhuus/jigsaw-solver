@@ -47,22 +47,27 @@ class Piece:
         # Create a new jagged puzzle line for the side
         if side == "left":
             self.left_side = self.create_random_line_coordinates((self.left_side[0][0], self.left_side[0][1]), self.piece_size, Piece.LEFT)
+            new_piece_side_data = Piece.move_shape(self.left_side, 50, 90)
             new_side_data = self.left_side
         elif side == "right":
             self.right_side = self.create_random_line_coordinates((self.right_side[0][0], self.right_side[0][1]), self.piece_size, Piece.RIGHT)
+            new_piece_side_data = Piece.move_shape(self.right_side, 50, 90)
             new_side_data = self.right_side
         elif side == "bottom":
             self.bottom_side = self.create_random_line_coordinates((self.bottom_side[0][0], self.bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
+            new_piece_side_data = Piece.move_shape(self.bottom_side, 50, 90)
             new_side_data = self.bottom_side
         elif side == "top":
             self.top_side = self.create_random_line_coordinates((self.top_side[0][0], self.top_side[0][1]), self.piece_size, Piece.TOP)
+            new_piece_side_data = Piece.move_shape(self.top_side, 50, 90)
             new_side_data = self.top_side
         else:
             raise Exception()
 
         # Initialize a new puzzle piece
+        # TODO(jordanhuus): dynamically arrange connected pieces based on 'side' variable
         new_piece_location = (self.location[0], self.location[1]+self.piece_size[0]+50)
-        self.connected_pieces.append(Piece(new_piece_location, self.piece_size, self, side, new_side_data, self.image_object))
+        self.connected_pieces.append(Piece(new_piece_location, self.piece_size, self, side, new_piece_side_data, self.image_object))
 
     def create_random_line_coordinates(self, starting_location, size, side):
         new_lines = []
@@ -142,6 +147,18 @@ class Piece:
             for line in side:
                 draw.line(line, fill=(0,0,0,0), width=2)
 
+    @classmethod
+    def move_shape(Piece, shape_coordinates, size, direction):
+        # Calculate x, y shift based on direction and size
+        opposite = math.sin(math.radians(direction)) * size
+        adjacent = math.cos(math.radians(direction)) * size
+
+        new_lines = []
+        for line in shape_coordinates:
+            new_lines.append((line[0]+adjacent, line[1]+opposite, line[2]+adjacent, line[3]+opposite))
+
+        return new_lines
+
 
 def main():
     # Init background image
@@ -151,6 +168,11 @@ def main():
     first_piece.add_side("bottom")
     first_piece.draw()
 
+    # Draw each connected piece
+    for piece in first_piece.connected_pieces:
+        piece.draw()
+
+    
     # Save the image
     im.save("test.jpeg")
 
