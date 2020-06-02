@@ -27,6 +27,7 @@ class Piece:
         self.piece_size = piece_size
         self.image_object = image_object
         self.location = location
+        self.piece_padding = 25
         if initiating_piece is not None:
             self.connected_pieces.append(initiating_piece)
 
@@ -47,27 +48,32 @@ class Piece:
         # Create a new jagged puzzle line for the side
         if side == "left":
             self.left_side = self.create_random_line_coordinates((self.left_side[0][0], self.left_side[0][1]), self.piece_size, Piece.LEFT)
-            new_piece_side_data = Piece.move_shape(self.left_side, 50, 90)
+            new_piece_side_data = Piece.move_shape(self.left_side, self.piece_padding, 180)
             new_side_data = self.left_side
+            new_piece_location = (self.location[0]-self.piece_size[0]-self.piece_padding, self.location[1])
         elif side == "right":
             self.right_side = self.create_random_line_coordinates((self.right_side[0][0], self.right_side[0][1]), self.piece_size, Piece.RIGHT)
-            new_piece_side_data = Piece.move_shape(self.right_side, 50, 90)
+            new_piece_side_data = Piece.move_shape(self.right_side, self.piece_padding, 0)
             new_side_data = self.right_side
+            new_piece_location = (self.location[0]+self.piece_size[0]+self.piece_padding, self.location[1])
         elif side == "bottom":
             self.bottom_side = self.create_random_line_coordinates((self.bottom_side[0][0], self.bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
-            new_piece_side_data = Piece.move_shape(self.bottom_side, 50, 90)
+            new_piece_side_data = Piece.move_shape(self.bottom_side, self.piece_padding, 90)
             new_side_data = self.bottom_side
+            new_piece_location = (self.location[0], self.location[1]+self.piece_size[0]+self.piece_padding)
         elif side == "top":
             self.top_side = self.create_random_line_coordinates((self.top_side[0][0], self.top_side[0][1]), self.piece_size, Piece.TOP)
-            new_piece_side_data = Piece.move_shape(self.top_side, 50, 90)
+            new_piece_side_data = Piece.move_shape(self.top_side, self.piece_padding, 270)
             new_side_data = self.top_side
+            new_piece_location = (self.location[0], self.location[1]-self.piece_size[1]-self.piece_padding)
         else:
             raise Exception()
 
         # Initialize a new puzzle piece
-        # TODO(jordanhuus): dynamically arrange connected pieces based on 'side' variable
-        new_piece_location = (self.location[0], self.location[1]+self.piece_size[0]+50)
-        self.connected_pieces.append(Piece(new_piece_location, self.piece_size, self, side, new_piece_side_data, self.image_object))
+        new_piece = Piece(new_piece_location, self.piece_size, self, side, new_piece_side_data, self.image_object)
+        self.connected_pieces.append(new_piece)
+
+        return new_piece
 
     def create_random_line_coordinates(self, starting_location, size, side):
         new_lines = []
@@ -85,7 +91,7 @@ class Piece:
             arc_starting_angle = 90
             line_size = (size[1]-diameter)/2
         elif side == Piece.RIGHT:
-            line_angle = 0
+            line_angle = 90
             arc_starting_angle = 0
             line_size = (size[1]-diameter)/2
         elif side == Piece.LEFT:
@@ -102,18 +108,18 @@ class Piece:
         # Draw arc; LEFT and BOTTOM sides will draw in opposite directions than RIGHT and TOP
         if side == Piece.BOTTOM or side == Piece.LEFT:
             # Draw an arc
-            for a in range(arc_starting_angle, (arc_starting_angle-90) % 360, -2):
+            for a in range(arc_starting_angle, arc_starting_angle-90, -2):
                 last_line = self.create_line_coordinates(last_line, 0.5, a)
                 new_lines.append(last_line)
-            for a in range((arc_starting_angle-91) % 360, (arc_starting_angle-182) % 360, -2):
+            for a in range(arc_starting_angle-91, arc_starting_angle-182, -2):
                 last_line = self.create_line_coordinates(last_line, 0.5, a)
                 new_lines.append(last_line)
         else:
             # Draw an arc
-            for a in range(arc_starting_angle, (arc_starting_angle+92) % 360, 2):
+            for a in range(arc_starting_angle, arc_starting_angle+92, 2):
                 last_line = self.create_line_coordinates(last_line, 0.5, a)
-                new_lines.append(last_line)
-            for a in range((arc_starting_angle+90) % 360, (arc_starting_angle+182) % 360, 2):
+                new_lines.append(last_line)            
+            for a in range(arc_starting_angle+90, arc_starting_angle+182, 2):
                 last_line = self.create_line_coordinates(last_line, 0.5, a)
                 new_lines.append(last_line)
 
@@ -147,6 +153,21 @@ class Piece:
             for line in side:
                 draw.line(line, fill=(0,0,0,0), width=2)
 
+    def draw_recursively(self, visited=None):
+        # Establish set of visited pieces
+        if visited is None:
+            visited = set()
+
+        visited.add(self)
+        
+        draw = ImageDraw.Draw(self.image_object)
+        for side in [self.left_side, self.right_side, self.top_side, self.bottom_side]:
+            for line in side:
+                draw.line(line, fill=(0,0,0,0), width=2)
+        for piece in self.connected_pieces:
+            if piece not in visited:
+                piece.draw_recursively(visited)
+        
     @classmethod
     def move_shape(Piece, shape_coordinates, size, direction):
         # Calculate x, y shift based on direction and size
@@ -165,13 +186,17 @@ def main():
     im = Image.new('RGB', (500, 300), (255, 255, 255))
 
     first_piece = Piece((100, 100), (50, 50), None, None, None, im)
+    first_piece.add_side("left")
+    first_piece.add_side("top")
     first_piece.add_side("bottom")
-    first_piece.draw()
+    
+    right_piece = first_piece.add_side("right")
+
+    right_piece.add_side("right")
 
     # Draw each connected piece
-    for piece in first_piece.connected_pieces:
-        piece.draw()
-
+    first_piece.draw_recursively()
+                
     
     # Save the image
     im.save("test.jpeg")
