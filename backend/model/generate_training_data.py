@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw
 import math
+import random
 
 
 
@@ -76,9 +77,11 @@ class Piece:
 
         return new_piece
 
-    def create_random_line_coordinates(self, starting_location, size, side, concave=True):
+    def create_random_line_coordinates(self, starting_location, size, side):
         new_lines = []
-        arc_increment_size = 0.5
+        min_arc_size = 0.2
+        max_arc_size = 0.5
+        arc_increment_size = (random.random()*(max_arc_size-min_arc_size)) + min_arc_size
         diameter = (arc_increment_size * 180) / math.pi
 
         # Draw random line based on this piece's current location
@@ -108,20 +111,20 @@ class Piece:
         new_lines.append(last_line)
 
         # Draw arc
-        if not concave:
+        if random.random() >= 0.5:
             for a in range(arc_starting_angle, arc_starting_angle+90, 2):
-                last_line = self.create_line_coordinates(last_line, 0.5, a)
+                last_line = self.create_line_coordinates(last_line, arc_increment_size, a)
                 new_lines.append(last_line)
             for a in range(arc_starting_angle+91, arc_starting_angle+182, 2):
-                last_line = self.create_line_coordinates(last_line, 0.5, a)
+                last_line = self.create_line_coordinates(last_line, arc_increment_size, a)
                 new_lines.append(last_line)
         else:
             arc_starting_angle += 540
             for a in range(arc_starting_angle, arc_starting_angle-90, -2):
-                last_line = self.create_line_coordinates(last_line, 0.5, a)
+                last_line = self.create_line_coordinates(last_line, arc_increment_size, a)
                 new_lines.append(last_line)
             for a in range(arc_starting_angle-91, arc_starting_angle-182, -2):
-                last_line = self.create_line_coordinates(last_line, 0.5, a)
+                last_line = self.create_line_coordinates(last_line, arc_increment_size, a)
                 new_lines.append(last_line)
         
         # Draw Line
