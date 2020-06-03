@@ -2,6 +2,7 @@ from PIL import Image, ImageDraw
 import math
 
 
+
 class Piece:
 
     pieces_count = 0
@@ -75,9 +76,8 @@ class Piece:
 
         return new_piece
 
-    def create_random_line_coordinates(self, starting_location, size, side):
+    def create_random_line_coordinates(self, starting_location, size, side, concave=True):
         new_lines = []
-
         arc_increment_size = 0.5
         diameter = (arc_increment_size * 180) / math.pi
 
@@ -87,7 +87,8 @@ class Piece:
             arc_starting_angle = 270
             line_size = (size[1]-diameter)/2
         elif side == Piece.BOTTOM:
-            line_angle = 0
+            starting_location = Piece.move_point(starting_location, self.piece_size[1], 0)
+            line_angle = 180
             arc_starting_angle = 90
             line_size = (size[1]-diameter)/2
         elif side == Piece.RIGHT:
@@ -95,7 +96,8 @@ class Piece:
             arc_starting_angle = 0
             line_size = (size[1]-diameter)/2
         elif side == Piece.LEFT:
-            line_angle = 90
+            starting_location = Piece.move_point(starting_location, self.piece_size[0], 90)
+            line_angle = 270
             arc_starting_angle = 180
             line_size = (size[0]-diameter)/2
         else:
@@ -105,24 +107,23 @@ class Piece:
         last_line = self.create_line_coordinates(starting_location, line_size, line_angle)
         new_lines.append(last_line)
 
-        # Draw arc; LEFT and BOTTOM sides will draw in opposite directions than RIGHT and TOP
-        if side == Piece.BOTTOM or side == Piece.LEFT:
-            # Draw an arc
+        # Draw arc
+        if not concave:
+            for a in range(arc_starting_angle, arc_starting_angle+90, 2):
+                last_line = self.create_line_coordinates(last_line, 0.5, a)
+                new_lines.append(last_line)
+            for a in range(arc_starting_angle+91, arc_starting_angle+182, 2):
+                last_line = self.create_line_coordinates(last_line, 0.5, a)
+                new_lines.append(last_line)
+        else:
+            arc_starting_angle += 540
             for a in range(arc_starting_angle, arc_starting_angle-90, -2):
                 last_line = self.create_line_coordinates(last_line, 0.5, a)
                 new_lines.append(last_line)
             for a in range(arc_starting_angle-91, arc_starting_angle-182, -2):
                 last_line = self.create_line_coordinates(last_line, 0.5, a)
                 new_lines.append(last_line)
-        else:
-            # Draw an arc
-            for a in range(arc_starting_angle, arc_starting_angle+92, 2):
-                last_line = self.create_line_coordinates(last_line, 0.5, a)
-                new_lines.append(last_line)            
-            for a in range(arc_starting_angle+90, arc_starting_angle+182, 2):
-                last_line = self.create_line_coordinates(last_line, 0.5, a)
-                new_lines.append(last_line)
-
+        
         # Draw Line
         last_line = self.create_line_coordinates(last_line, line_size, line_angle)
         new_lines.append(last_line)
@@ -180,6 +181,22 @@ class Piece:
 
         return new_lines
 
+    @classmethod
+    def move_line(Piece, line_coordinates, size, direction):
+        # Calculate x, y shift based on direction and size
+        opposite = math.sin(math.radians(direction)) * size
+        adjacent = math.cos(math.radians(direction)) * size
+
+        return (line_coordinates[0]+adjacent, line_coordinates[1]+opposite, line_coordinates[2]+adjacent, line_coordinates[3]+opposite)
+
+    @classmethod
+    def move_point(Piece, point_coordinates, size, direction):
+        # Calculate x, y shift based on direction and size
+        opposite = math.sin(math.radians(direction)) * size
+        adjacent = math.cos(math.radians(direction)) * size
+
+        return (point_coordinates[0]+adjacent, point_coordinates[1]+opposite)
+
 
 def main():
     # Init background image
@@ -187,12 +204,13 @@ def main():
 
     first_piece = Piece((100, 100), (50, 50), None, None, None, im)
     first_piece.add_side("left")
-    first_piece.add_side("top")
     first_piece.add_side("bottom")
+    first_piece.add_side("top")
+    first_piece.add_side("right")
     
-    right_piece = first_piece.add_side("right")
+    # right_piece = first_piece.add_side("right")
 
-    right_piece.add_side("right")
+    # right_piece.add_side("right")
 
     # Draw each connected piece
     first_piece.draw_recursively()
