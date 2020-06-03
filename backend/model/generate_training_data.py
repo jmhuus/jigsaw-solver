@@ -49,22 +49,22 @@ class Piece:
     def add_side(self, side):
         # Create a new jagged puzzle line for the side
         if side == "left":
-            self.left_side = self.create_random_line_coordinates((self.left_side[0][0], self.left_side[0][1]), self.piece_size, Piece.LEFT)
+            self.left_side = self.get_random_side_coordinates((self.left_side[0][0], self.left_side[0][1]), self.piece_size, Piece.LEFT)
             new_piece_side_data = Piece.move_shape(self.left_side, self.piece_padding, 180)
             new_side_data = self.left_side
             new_piece_location = (self.location[0]-self.piece_size[0]-self.piece_padding, self.location[1])
         elif side == "right":
-            self.right_side = self.create_random_line_coordinates((self.right_side[0][0], self.right_side[0][1]), self.piece_size, Piece.RIGHT)
+            self.right_side = self.get_random_side_coordinates((self.right_side[0][0], self.right_side[0][1]), self.piece_size, Piece.RIGHT)
             new_piece_side_data = Piece.move_shape(self.right_side, self.piece_padding, 0)
             new_side_data = self.right_side
             new_piece_location = (self.location[0]+self.piece_size[0]+self.piece_padding, self.location[1])
         elif side == "bottom":
-            self.bottom_side = self.create_random_line_coordinates((self.bottom_side[0][0], self.bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
+            self.bottom_side = self.get_random_side_coordinates((self.bottom_side[0][0], self.bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
             new_piece_side_data = Piece.move_shape(self.bottom_side, self.piece_padding, 90)
             new_side_data = self.bottom_side
             new_piece_location = (self.location[0], self.location[1]+self.piece_size[0]+self.piece_padding)
         elif side == "top":
-            self.top_side = self.create_random_line_coordinates((self.top_side[0][0], self.top_side[0][1]), self.piece_size, Piece.TOP)
+            self.top_side = self.get_random_side_coordinates((self.top_side[0][0], self.top_side[0][1]), self.piece_size, Piece.TOP)
             new_piece_side_data = Piece.move_shape(self.top_side, self.piece_padding, 270)
             new_side_data = self.top_side
             new_piece_location = (self.location[0], self.location[1]-self.piece_size[1]-self.piece_padding)
@@ -77,7 +77,14 @@ class Piece:
 
         return new_piece
 
-    def create_random_line_coordinates(self, starting_location, size, side):
+    def get_random_side_coordinates(self, starting_location, size, side):
+        if random.random() >= 0.5:
+            return self.get_random_arc_coordinates(starting_location, size, side)
+        else:
+            return self.get_random_angle_coordinates(starting_location, size, side)
+            
+
+    def get_random_arc_coordinates(self, starting_location, size, side):
         new_lines = []
         min_arc_size = 0.2
         max_arc_size = 0.5
@@ -86,28 +93,28 @@ class Piece:
 
         # Draw random line based on this piece's current location
         if side == Piece.TOP:
-            line_angle = 0
+            line_direction = 0
             arc_starting_angle = 270
             line_size = (size[1]-diameter)/2
         elif side == Piece.BOTTOM:
             starting_location = Piece.move_point(starting_location, self.piece_size[1], 0)
-            line_angle = 180
+            line_direction = 180
             arc_starting_angle = 90
             line_size = (size[1]-diameter)/2
         elif side == Piece.RIGHT:
-            line_angle = 90
+            line_direction = 90
             arc_starting_angle = 0
             line_size = (size[1]-diameter)/2
         elif side == Piece.LEFT:
             starting_location = Piece.move_point(starting_location, self.piece_size[0], 90)
-            line_angle = 270
+            line_direction = 270
             arc_starting_angle = 180
             line_size = (size[0]-diameter)/2
         else:
             raise Exception()
 
         # Draw line
-        last_line = self.create_line_coordinates(starting_location, line_size, line_angle)
+        last_line = self.create_line_coordinates(starting_location, line_size, line_direction)
         new_lines.append(last_line)
 
         # Draw arc
@@ -128,7 +135,51 @@ class Piece:
                 new_lines.append(last_line)
         
         # Draw Line
-        last_line = self.create_line_coordinates(last_line, line_size, line_angle)
+        last_line = self.create_line_coordinates(last_line, line_size, line_direction)
+        new_lines.append(last_line)
+
+        return new_lines
+
+    def get_random_angle_coordinates(self, starting_location, size, side):
+        new_lines = []
+        min_angle_size = 10
+        max_angle_size = 25
+        angle_size = (random.random()*(max_angle_size-min_angle_size)) + min_angle_size
+        min_angle_direction = 20
+        max_angle_direction = 75
+        angle_direction = (random.random()*(max_angle_direction-min_angle_direction)) + min_angle_direction
+        angle_length = (math.cos(math.radians(angle_direction)) * angle_size) * 2
+
+        # Draw random line based on this piece's current location
+        if side == Piece.TOP:
+            line_direction = 360
+            line_size = (size[1]-angle_length)/2
+        elif side == Piece.BOTTOM:
+            starting_location = Piece.move_point(starting_location, self.piece_size[1], 0)
+            line_direction = 540
+            line_size = (size[1]-angle_length)/2
+        elif side == Piece.RIGHT:
+            line_direction = 450
+            line_size = (size[1]-angle_length)/2
+        elif side == Piece.LEFT:
+            starting_location = Piece.move_point(starting_location, self.piece_size[0], 90)
+            line_direction = 630
+            line_size = (size[0]-angle_length)/2
+        else:
+            raise Exception()
+
+        # Draw line
+        last_line = self.create_line_coordinates(starting_location, line_size, line_direction)
+        new_lines.append(last_line)
+
+        # Draw angle
+        last_line = self.create_line_coordinates(last_line, angle_size, line_direction+angle_direction)
+        new_lines.append(last_line)
+        last_line = self.create_line_coordinates(last_line, angle_size, line_direction-angle_direction)
+        new_lines.append(last_line)
+        
+        # Draw Line
+        last_line = self.create_line_coordinates(last_line, line_size, line_direction)
         new_lines.append(last_line)
 
         return new_lines
