@@ -26,10 +26,12 @@ class Piece:
         self.bottom_side = [(location[0], location[1]+piece_size[1], location[0]+piece_size[0], location[1]+piece_size[1])]
         self.top_side = [(location[0], location[1], location[0]+piece_size[0], location[1])]
 
+        self.piece_id = Piece.pieces_count
         self.piece_size = piece_size
         self.image_object = image_object
         self.location = location
         self.piece_padding = 25
+        self.center_location = (location[0]+(self.piece_size[0]/2), location[1]+(self.piece_size[1]/2))
         if initiating_piece is not None:
             self.connected_pieces.append(initiating_piece)
 
@@ -208,20 +210,27 @@ class Piece:
             for line in side:
                 draw.line(line, fill=(0,0,0,0), width=2)
 
-    def draw_recursively(self, visited=None):
+    def draw_recursively(self, visited=None, debugging=False):
         # Establish set of visited pieces
         if visited is None:
             visited = set()
 
         visited.add(self)
-        
+
+        # Draw current piece's lines
         draw = ImageDraw.Draw(self.image_object)
         for side in [self.left_side, self.right_side, self.top_side, self.bottom_side]:
             for line in side:
                 draw.line(line, fill=(0,0,0,0), width=2)
+
+        # For debugging, number each piece
+        if debugging:
+            draw.text(self.center_location, str(self.piece_id), (0,0,0))
+
+        # Draw connected pieces
         for piece in self.connected_pieces:
             if piece not in visited:
-                piece.draw_recursively(visited)
+                piece.draw_recursively(visited, debugging)
         
     @classmethod
     def move_shape(Piece, shape_coordinates, size, direction):
@@ -260,14 +269,11 @@ def main():
     first_piece.add_side("left")
     first_piece.add_side("bottom")
     first_piece.add_side("top")
-    first_piece.add_side("right")
-    
-    # right_piece = first_piece.add_side("right")
-
-    # right_piece.add_side("right")
+    right_piece = first_piece.add_side("right")
+    right_piece.add_side("right")
 
     # Draw each connected piece
-    first_piece.draw_recursively()
+    first_piece.draw_recursively(debugging=True)
                 
     
     # Save the image
