@@ -19,13 +19,6 @@ class Piece:
         Piece.pieces_count += 1
 
         self.connected_pieces = []
-
-        # Side data
-        self.right_side = [(location[0]+piece_size[0], location[1], location[0]+piece_size[0], location[1]+piece_size[1])]
-        self.left_side = [(location[0], location[1], location[0], location[1]+piece_size[1])]
-        self.bottom_side = [(location[0], location[1]+piece_size[1], location[0]+piece_size[0], location[1]+piece_size[1])]
-        self.top_side = [(location[0], location[1], location[0]+piece_size[0], location[1])]
-
         self.piece_id = Piece.pieces_count
         self.piece_size = piece_size
         self.image_object = image_object
@@ -34,6 +27,16 @@ class Piece:
         self.center_location = (location[0]+(self.piece_size[0]/2), location[1]+(self.piece_size[1]/2))
         if initiating_piece is not None:
             self.connected_pieces.append(initiating_piece)
+
+        # Side data
+        self.default_right_side = [(location[0]+piece_size[0], location[1], location[0]+piece_size[0], location[1]+piece_size[1])]
+        self.default_left_side = [(location[0], location[1], location[0], location[1]+piece_size[1])]
+        self.default_bottom_side = [(location[0], location[1]+piece_size[1], location[0]+piece_size[0], location[1]+piece_size[1])]
+        self.default_top_side = [(location[0], location[1], location[0]+piece_size[0], location[1])]
+        self.top_side = self.get_random_side_coordinates((self.default_top_side[0][0], self.default_top_side[0][1]), self.piece_size, Piece.TOP)
+        self.bottom_side = self.get_random_side_coordinates((self.default_bottom_side[0][0], self.default_bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
+        self.left_side = self.get_random_side_coordinates((self.default_left_side[0][0], self.default_left_side[0][1]), self.piece_size, Piece.LEFT)
+        self.right_side = self.get_random_side_coordinates((self.default_right_side[0][0], self.default_right_side[0][1]), self.piece_size, Piece.RIGHT)
 
         # Any piece created AFTER the original piece will initialize with a jagged line
         if incoming_side is not None:
@@ -51,22 +54,22 @@ class Piece:
     def add_side(self, side):
         # Create a new jagged puzzle line for the side
         if side == "left":
-            self.left_side = self.get_random_side_coordinates((self.left_side[0][0], self.left_side[0][1]), self.piece_size, Piece.LEFT)
+            self.left_side = self.get_random_side_coordinates((self.default_left_side[0][0], self.default_left_side[0][1]), self.piece_size, Piece.LEFT)
             new_piece_side_data = Piece.move_shape(self.left_side, self.piece_padding, 180)
             new_side_data = self.left_side
             new_piece_location = (self.location[0]-self.piece_size[0]-self.piece_padding, self.location[1])
         elif side == "right":
-            self.right_side = self.get_random_side_coordinates((self.right_side[0][0], self.right_side[0][1]), self.piece_size, Piece.RIGHT)
+            self.right_side = self.get_random_side_coordinates((self.default_right_side[0][0], self.default_right_side[0][1]), self.piece_size, Piece.RIGHT)
             new_piece_side_data = Piece.move_shape(self.right_side, self.piece_padding, 0)
             new_side_data = self.right_side
             new_piece_location = (self.location[0]+self.piece_size[0]+self.piece_padding, self.location[1])
         elif side == "bottom":
-            self.bottom_side = self.get_random_side_coordinates((self.bottom_side[0][0], self.bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
+            self.bottom_side = self.get_random_side_coordinates((self.default_bottom_side[0][0], self.default_bottom_side[0][1]), self.piece_size, Piece.BOTTOM)
             new_piece_side_data = Piece.move_shape(self.bottom_side, self.piece_padding, 90)
             new_side_data = self.bottom_side
             new_piece_location = (self.location[0], self.location[1]+self.piece_size[0]+self.piece_padding)
         elif side == "top":
-            self.top_side = self.get_random_side_coordinates((self.top_side[0][0], self.top_side[0][1]), self.piece_size, Piece.TOP)
+            self.top_side = self.get_random_side_coordinates((self.default_top_side[0][0], self.default_top_side[0][1]), self.piece_size, Piece.TOP)
             new_piece_side_data = Piece.move_shape(self.top_side, self.piece_padding, 270)
             new_side_data = self.top_side
             new_piece_location = (self.location[0], self.location[1]-self.piece_size[1]-self.piece_padding)
