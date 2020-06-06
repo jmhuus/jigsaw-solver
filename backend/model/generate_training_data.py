@@ -203,19 +203,21 @@ class Piece:
         # Return coordinates for the newly created line; x1, y1, x2, y2
         return (start_x, start_y, start_x+adjacent, start_y+opposite)
 
-    def draw(self, image_object):
+    def draw(self, image_object, debugging=False):
         draw = ImageDraw.Draw(image_object)
         for side in [self.left_side, self.right_side, self.top_side, self.bottom_side]:
             for line in side:
                 draw.line(line, fill=(0,0,0,0), width=2)
 
-        # self.center_location
+        # Debuggibng features
+        if debugging:
+            draw.text(self.center_location, str(self.piece_id), (0,0,0))
 
-    Def rotate_piece(self, angle):
-        self.top_side = Piece.rotate_shape(self.top_side, self.location, angle)
-        self.right_side = Piece.rotate_shape(self.right_side, self.location, angle)
-        self.bottom_side = Piece.rotate_shape(self.bottom_side, self.location, angle)
-        self.left_side = Piece.rotate_shape(self.left_side, self.location, angle)
+    # def rotate_piece(self, angle):
+    #     self.top_side = Piece.rotate_shape(self.top_side, self.location, angle)
+    #     self.right_side = Piece.rotate_shape(self.right_side, self.location, angle)
+    #     self.bottom_side = Piece.rotate_shape(self.bottom_side, self.location, angle)
+    #     self.left_side = Piece.rotate_shape(self.left_side, self.location, angle)
         
     @classmethod
     def rotate_shape(Piece, shape_coordinates, rotation_axis, angle):
@@ -308,15 +310,15 @@ class Puzzle:
     def draw_puzzle(self, visited=None, debugging=False):
         for row in range(len(self.grid)):
             for column in range(len(self.grid[0])):
-                self.grid[row][column].draw(self.image_object)
+                self.grid[row][column].draw(self.image_object, debugging)
         
 
 def main():
     # Init background image
     im = Image.new('RGB', (500, 300), (255, 255, 255))
 
-    puzzle = Puzzle((3,6), (100,100), (50,50), im, 15)
-    puzzle.draw_puzzle()
+    puzzle = Puzzle((3,6), (50,50), (50,50), im, 25)
+    puzzle.draw_puzzle(debugging=True)
     
     # Save the image
     im.save("test.jpeg")
