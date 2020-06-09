@@ -52,6 +52,10 @@ class Piece:
             raise Exception()
         
     def connect(self, connecting_piece, side, padding_size):
+        # Add connecting pieces
+        self.connected_pieces.append(connecting_piece)
+        connecting_piece.connected_pieces.append(self)
+        
         # Add an adjacent piece based on the provided side
         if side == Piece.TOP:
             self.set_random_side_coordinates((self.default_top_side[0][0], self.default_top_side[0][1]), self.piece_size, Piece.TOP)
@@ -213,6 +217,28 @@ class Piece:
         if debugging:
             draw.text(self.center_location, str(self.piece_id), (0,0,0))
 
+    def get_shape_data(self):
+        lines = []
+        for line in (self.left_side + self.top_side + self.right_side + self.bottom_side):
+            lines.append((line[0], line[1]))
+            lines.append((line[2], line[3]))
+        return lines
+
+    def get_normalized_shape_data(self, padding_size):
+        # Retrieve the entire shape line
+        lines = []
+        for line in (self.left_side + self.top_side + self.right_side + self.bottom_side):
+            lines.append((line[0], line[1]))
+            lines.append((line[2], line[3]))
+
+        # Normalize the X and Y axis; shift the shape according to it's relative location when making the puzzle
+        shift_x_by = self.location[0] - padding_size
+        shift_y_by = self.location[1] - padding_size
+        for i in range(len(lines)):
+            lines[i] = (lines[i][0]-shift_x_by, lines[i][1]-shift_y_by)
+        
+        return lines
+
     # def rotate_piece(self, angle):
     #     self.top_side = Piece.rotate_shape(self.top_side, self.location, angle)
     #     self.right_side = Piece.rotate_shape(self.right_side, self.location, angle)
@@ -288,7 +314,7 @@ class Puzzle:
             previous_piece = None
             piece_location[0] = self.starting_location[1]
             for column in range(self.puzzle_size[1]):
-                current_piece = Piece(piece_location, self.piece_size)
+                current_piece = Piece(copy.deepcopy(piece_location), self.piece_size)
                 piece_location[0] += (self.piece_size[0] + self.piece_padding)  # Move right
                 
                 if previous_piece is not None:
@@ -307,22 +333,9 @@ class Puzzle:
             for column in range(len(self.grid[0])):
                 self.grid[row-1][column].connect(self.grid[row][column], Piece.BOTTOM, self.piece_padding)
 
-    def draw_puzzle(self, visited=None, debugging=False):
+    def draw_puzzle(self, image_output_name, visited=None, debugging=False):
         for row in range(len(self.grid)):
             for column in range(len(self.grid[0])):
                 self.grid[row][column].draw(self.image_object, debugging)
-        
 
-def main():
-    # Init background image
-    im = Image.new('RGB', (500, 300), (255, 255, 255))
-
-    puzzle = Puzzle((3,6), (50,50), (50,50), im, 25)
-    puzzle.draw_puzzle(debugging=True)
-    
-    # Save the image
-    im.save("test.jpeg")
-
-
-if __name__ == "__main__":
-    main()
+        self.image_object.save(image_output_name)
