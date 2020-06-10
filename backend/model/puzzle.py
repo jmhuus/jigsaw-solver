@@ -37,7 +37,6 @@ class Piece:
         self.default_bottom_side = [(location[0], location[1]+piece_size[1], location[0]+piece_size[0], location[1]+piece_size[1])]
         self.default_top_side = [(location[0], location[1], location[0]+piece_size[0], location[1])]
         
-
     def set_side(self, side_obj, side, padding_size):
         # Reset the provided side and ensure location matches self
         if side == Piece.TOP:

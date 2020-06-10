@@ -21,14 +21,11 @@ def main():
     
     # Retrieve model data
     model_data = []
-    piece1 = puzzle.grid[4][4]
-    for i in range(10):
-        print("before:", piece1.get_shape_data()[i])
-        print("after:", piece1.get_normalized_shape_data(puzzle.piece_padding)[i])
-        print()
-    # for row in range(len(puzzle.grid)):
-    #     for column in range(len(puzzle.grid[row])):
-    #         piece = puzzle.grid[row][column]
+    model_labels = []
+    for row in range(len(puzzle.grid)):
+        for column in range(len(puzzle.grid[row])):
+            piece = puzzle.grid[row][column]
+            model_data
 
     
     # # Convert model data into numpy array for Tensorflow
